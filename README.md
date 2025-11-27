@@ -8,21 +8,21 @@ This is a simple step-by-step guide to run the OpenLane2 Automated Place & Route
 ### 1. Setup Environment
 Move to that folder where your openlane2 is installed, like
 
-=cd OpenLane2
+=`cd OpenLane2`
 
 Enter Nix shell (OpenLane2 uses Nix) through the terminal by typing:
 
-=nix-shell
+=`nix-shell`
 
 After nix-shell is invoked the terminal command lien will look like this:
 
-[nix-shell:~/openlane2]$ 
+`[nix-shell:~/openlane2]$ `
 
 Create your design folder, e.g., Multiplier:
 
-=mkdir ~/openlane2/designs/Multiplier
+=`mkdir ~/openlane2/designs/Multiplier`
 
-=cd ~/openlane2/designs/Multiplier
+=`cd ~/openlane2/designs/Multiplier`
 
 ### 2. Prepare Design Files
 Place your RTL Verilog files here (e.g., mult.v).
@@ -32,7 +32,7 @@ Optional: create SDC constraints (timing targets) in mult.sdc or pin constraint 
 
 You can create a json file using nano like this:
 
-=nano config.json
+=`nano config.json`
 
 It will open an editor on the terminal where you can write your config json script which i have added in my repo you can check there.
 You can also use VSCode for writing design, config and constraint files.
@@ -41,12 +41,12 @@ You can also use VSCode for writing design, config and constraint files.
 
 Run the full flow with your configuration:
 
-=openlane config.json 
+=`openlane config.json `
 
 if you uses the above command then openlane will create a run directory with a default naming.
 But you can name the directory as you wish by running the below command on the terminal
 
-=openlane config.json --run-tag 200MHz
+=`openlane config.json --run-tag 200MHz`
 
 here --run-tag creates the name tag for the directory and 200Mhz is the directory name.
 By using this you can keep different runs separate.
