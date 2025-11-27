@@ -1,0 +1,14 @@
+%Warning-WIDTHEXPAND: mult.v:107:24: Operator ASSIGNDLY expects 20 bits on the Assign RHS, but Assign RHS's ARRAYSEL generates 4 bits.
+                                   : ... note: In instance 'mult'
+  107 |             save_pp0_6 <= pp3[0]; 
+      |                        ^~
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.018
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: mult.v:100:34: Signal is not used: 'save_pp0_6'
+                                    : ... note: In instance 'mult'
+  100 |     reg [19:0] part0_6, part1_6, save_pp0_6;
+      |                                  ^~~~~~~~~~
+%Warning-UNUSEDSIGNAL: mult.v:144:16: Bits of signal are not used: 'sum_9'[19:16]
+                                    : ... note: In instance 'mult'
+  144 |     reg [19:0] sum_9;
+      |                ^~~~~

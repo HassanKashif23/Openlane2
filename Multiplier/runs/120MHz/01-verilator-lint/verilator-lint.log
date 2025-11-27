@@ -1,0 +1,55 @@
+%Warning-WIDTHEXPAND: mult.v:51:29: Operator SHIFTL expects 16 bits on the LHS, but LHS's VARREF 'pp3' generates 8 bits.
+                                  : ... note: In instance 'mult'
+   51 |             product <= (pp3 << 8) + ((pp2 +pp1) << 4) + pp0;
+      |                             ^~
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.018
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
+%Warning-WIDTHEXPAND: mult.v:51:43: Operator ADD expects 16 bits on the LHS, but LHS's VARREF 'pp2' generates 8 bits.
+                                  : ... note: In instance 'mult'
+   51 |             product <= (pp3 << 8) + ((pp2 +pp1) << 4) + pp0;
+      |                                           ^
+%Warning-WIDTHEXPAND: mult.v:51:43: Operator ADD expects 16 bits on the RHS, but RHS's VARREF 'pp1' generates 8 bits.
+                                  : ... note: In instance 'mult'
+   51 |             product <= (pp3 << 8) + ((pp2 +pp1) << 4) + pp0;
+      |                                           ^
+%Warning-WIDTHEXPAND: mult.v:51:55: Operator ADD expects 16 bits on the RHS, but RHS's VARREF 'pp0' generates 8 bits.
+                                  : ... note: In instance 'mult'
+   51 |             product <= (pp3 << 8) + ((pp2 +pp1) << 4) + pp0;
+      |                                                       ^
+%Error-PROCASSWIRE: mult.v:34:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp0'
+                                : ... note: In instance 'mult'
+   34 |             pp0 <= 0;
+      |             ^~~
+%Error-PROCASSWIRE: mult.v:35:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp1'
+                                : ... note: In instance 'mult'
+   35 |             pp1 <= 0;
+      |             ^~~
+%Error-PROCASSWIRE: mult.v:36:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp2'
+                                : ... note: In instance 'mult'
+   36 |             pp2 <= 0;
+      |             ^~~
+%Error-PROCASSWIRE: mult.v:37:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp3'
+                                : ... note: In instance 'mult'
+   37 |             pp3 <= 0;
+      |             ^~~
+%Error-PROCASSWIRE: mult.v:39:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp0'
+                                : ... note: In instance 'mult'
+   39 |             pp0 <= a_low * b_low;
+      |             ^~~
+%Error-PROCASSWIRE: mult.v:40:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp1'
+                                : ... note: In instance 'mult'
+   40 |             pp1 <= a_low * b_high;
+      |             ^~~
+%Error-PROCASSWIRE: mult.v:41:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp2'
+                                : ... note: In instance 'mult'
+   41 |             pp2 <= a_high * b_low;
+      |             ^~~
+%Error-PROCASSWIRE: mult.v:42:13: Procedural assignment to wire, perhaps intended var (IEEE 1800-2017 6.5): 'pp3'
+                                : ... note: In instance 'mult'
+   42 |             pp3 <= a_high * b_high;
+      |             ^~~
+%Warning-UNUSEDSIGNAL: mult.v:10:24: Signal is not driven, nor used: 'product_reg'
+                                   : ... note: In instance 'mult'
+   10 |     wire [2*WIDTH-1:0] product_reg;
+      |                        ^~~~~~~~~~~
+%Error: Exiting due to 8 error(s)

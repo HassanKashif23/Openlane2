@@ -1,0 +1,18 @@
+%Warning-WIDTHEXPAND: mult.v:61:29: Operator SHIFTL expects 16 bits on the LHS, but LHS's VARREF 'pp3' generates 8 bits.
+                                  : ... note: In instance 'mult'
+   61 |             product <= (pp3 << 8) + ((middle_sum) << 4) + pp0;
+      |                             ^~
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.018
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
+%Warning-WIDTHEXPAND: mult.v:61:51: Operator SHIFTL expects 16 bits on the LHS, but LHS's VARREF 'middle_sum' generates 8 bits.
+                                  : ... note: In instance 'mult'
+   61 |             product <= (pp3 << 8) + ((middle_sum) << 4) + pp0;
+      |                                                   ^~
+%Warning-WIDTHEXPAND: mult.v:61:57: Operator ADD expects 16 bits on the RHS, but RHS's VARREF 'pp0' generates 8 bits.
+                                  : ... note: In instance 'mult'
+   61 |             product <= (pp3 << 8) + ((middle_sum) << 4) + pp0;
+      |                                                         ^
+%Warning-UNUSEDSIGNAL: mult.v:10:24: Signal is not driven, nor used: 'product_reg'
+                                   : ... note: In instance 'mult'
+   10 |     wire [2*WIDTH-1:0] product_reg;
+      |                        ^~~~~~~~~~~
