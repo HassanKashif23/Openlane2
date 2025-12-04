@@ -1,0 +1,172 @@
+
+===========================================================================
+report_checks -unconstrained
+===========================================================================
+======================= nom_ss_100C_1v60 Corner ===================================
+
+Startpoint: _48_ (rising edge-triggered flip-flop clocked by clk)
+Endpoint: _32_ (rising edge-triggered flip-flop clocked by clk)
+Path Group: clk
+Path Type: max
+
+Fanout         Cap        Slew       Delay        Time   Description
+---------------------------------------------------------------------------------------------
+                      0.000000    0.000000    0.000000   clock clk (rise edge)
+                                  0.000000    0.000000   clock network delay (ideal)
+                      0.000000    0.000000    0.000000 ^ _48_/CLK (sky130_fd_sc_hd__dfrtp_2)
+     8    0.010957    0.116548    0.819544    0.819544 v _48_/Q (sky130_fd_sc_hd__dfrtp_2)
+                                                         b_r1[0] (net)
+                      0.116548    0.000000    0.819544 v _00_/B (sky130_fd_sc_hd__and2_2)
+     1    0.001838    0.066232    0.404817    1.224362 v _00_/X (sky130_fd_sc_hd__and2_2)
+                                                         PPs_w[6][6] (net)
+                      0.066232    0.000000    1.224362 v _32_/D (sky130_fd_sc_hd__dfrtp_2)
+                                              1.224362   data arrival time
+
+                      0.000000    2.000000    2.000000   clock clk (rise edge)
+                                  0.000000    2.000000   clock network delay (ideal)
+                                 -0.020000    1.980000   clock uncertainty
+                                  0.000000    1.980000   clock reconvergence pessimism
+                                              1.980000 ^ _32_/CLK (sky130_fd_sc_hd__dfrtp_2)
+                                 -0.293687    1.686313   library setup time
+                                              1.686313   data required time
+---------------------------------------------------------------------------------------------
+                                              1.686313   data required time
+                                             -1.224362   data arrival time
+---------------------------------------------------------------------------------------------
+                                              0.461951   slack (MET)
+
+
+
+
+===========================================================================
+report_checks --slack_max -0.01
+============================================================================
+======================= nom_ss_100C_1v60 Corner ===================================
+
+No paths found.
+
+
+===========================================================================
+ report_check_types -max_slew -max_cap -max_fanout -violators
+============================================================================
+======================= nom_ss_100C_1v60 Corner ===================================
+
+
+
+===========================================================================
+report_parasitic_annotation -report_unannotated
+============================================================================
+Found 83 unannotated drivers.
+ a[0]
+ a[1]
+ a[2]
+ a[3]
+ a[4]
+ a[5]
+ a[6]
+ a[7]
+ b[0]
+ b[1]
+ b[2]
+ b[3]
+ b[4]
+ b[5]
+ b[6]
+ b[7]
+ clk
+ rst
+ _00_/X
+ _01_/X
+ _02_/X
+ _03_/X
+ _04_/X
+ _05_/X
+ _06_/X
+ _07_/X
+ _08_/Q
+ _09_/Q
+ _10_/Q
+ _11_/Q
+ _12_/Q
+ _13_/Q
+ _14_/Q
+ _15_/Q
+ _16_/Q
+ _17_/Q
+ _18_/Q
+ _19_/Q
+ _20_/Q
+ _21_/Q
+ _22_/Q
+ _23_/Q
+ _24_/Q
+ _25_/Q
+ _26_/Q
+ _27_/Q
+ _28_/Q
+ _29_/Q
+ _30_/Q
+ _31_/Q
+ _32_/Q
+ _33_/Q
+ _34_/Q
+ _35_/Q
+ _36_/Q
+ _37_/Q
+ _38_/Q
+ _39_/Q
+ _40_/Q
+ _41_/Q
+ _42_/Q
+ _43_/Q
+ _44_/Q
+ _45_/Q
+ _46_/Q
+ _47_/Q
+ _48_/Q
+ _49_/HI
+ _49_/LO
+ _50_/HI
+ _50_/LO
+ _51_/HI
+ _51_/LO
+ _52_/HI
+ _52_/LO
+ _53_/HI
+ _53_/LO
+ _54_/HI
+ _54_/LO
+ _55_/HI
+ _55_/LO
+ _56_/HI
+ _56_/LO
+Found 0 partially unannotated drivers.
+
+===========================================================================
+max slew violation count 0
+max fanout violation count 0
+max cap violation count 0
+============================================================================
+
+===========================================================================
+check_setup -verbose -unconstrained_endpoints -multiple_clock -no_clock -no_input_delay -loops -generated_clocks
+===========================================================================
+Warning: There is 1 input port missing set_input_delay.
+  rst
+Warning: There are 16 unconstrained endpoints.
+  product_out[0]
+  product_out[10]
+  product_out[11]
+  product_out[12]
+  product_out[13]
+  product_out[14]
+  product_out[15]
+  product_out[1]
+  product_out[2]
+  product_out[3]
+  product_out[4]
+  product_out[5]
+  product_out[6]
+  product_out[7]
+  product_out[8]
+  product_out[9]

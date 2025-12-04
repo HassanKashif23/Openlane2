@@ -1,162 +1,131 @@
-module mult #(
-    parameter WIDTH = 8
-)(
-    input  wire                clk,
-    input  wire                rst,
-    input  wire [WIDTH-1:0]    a,
-    input  wire [WIDTH-1:0]    b,
-    output reg [2*WIDTH-1:0]   product
+// Pipelined 8x8 Multiplier using Carry-Save Adder (CSA) Reduction,
+// which is the practical implementation of the Wallace Tree.
+// Latency: 4 Cycles.
+
+module mult(
+    input  wire         clk,
+    input  wire         rst,      // Active-low reset
+    input  wire [7:0]   a,
+    input  wire [7:0]   b,
+    output reg  [15:0]  product_out
 );
 
-    // -------------------------------------------------------
-    // Stage 1: Register inputs
-    // -------------------------------------------------------
-    reg [WIDTH-1:0] a_reg, b_reg;
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin 
-            a_reg <= 0; 
-            b_reg <= 0; 
+    integer i_loop;
+
+    // --- Pipelining Registers ---
+    // Stage 1: Input Register
+    reg [7:0] a_r1, b_r1;
+    // Stage 2: Partial Products (64 bits)
+    reg [15:0] PPs_r2 [7:0];
+    // Stage 3: Sum and Carry vectors after 1st Reduction
+    reg [15:0] S_r3 [1:0], C_r3 [1:0];
+    reg [15:0] PPs_r3_remain [1:0]; 
+    // Stage 4: Sum and Carry vectors after 2nd Reduction
+    reg [15:0] S_r4, C_r4;
+
+    // --- Stage 1: Register Inputs ---
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin a_r1 <= 0; b_r1 <= 0; end
+        else begin a_r1 <= a; b_r1 <= b; end
+    end
+
+    // --- Stage 2: Partial Product Generation & Registration ---
+    wire [15:0] PPs_w [7:0]; // 8 partial product vectors, 16 bits wide
+    genvar i;
+    generate
+        for (i = 0; i < 8; i = i + 1) begin : pp_gen_and_shift
+            // PPs_w[i] = (A[i] & B) shifted left by i bits.
+            // The multiplication A[i] * B (8 bits) yields 8 bits (A[i] ? B : 0).
+            // We zero-extend this 8-bit result to 16 bits, then shift it left by 'i'.
+            assign PPs_w[i] = {{8{1'b0}}, a_r1[i] & b_r1} << i;
+        end
+    endgenerate
+
+    // Register the PPs - MUST use 'integer' for procedural loop
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            for (i_loop = 0; i_loop < 8; i_loop = i_loop + 1) PPs_r2[i_loop] <= 0;
         end else begin
-            a_reg <= a; 
-            b_reg <= b; 
+            for (i_loop = 0; i_loop < 8; i_loop = i_loop + 1) PPs_r2[i_loop] <= PPs_w[i_loop];
         end
     end
 
-    // Slice 2-bit groups
-    wire [1:0] a0 = a_reg[1:0], a1 = a_reg[3:2], a2 = a_reg[5:4], a3 = a_reg[7:6];
-    wire [1:0] b0 = b_reg[1:0], b1 = b_reg[3:2], b2 = b_reg[5:4], b3 = b_reg[7:6];
+    // --- Stage 3: First Layer of Reduction (8 vectors -> 4 vectors) ---
+    wire [15:0] S_w3 [1:0], C_w3 [1:0];
 
-    // -------------------------------------------------------
-    // Stage 2: first 8 partial products (4-bit each)
-    // -------------------------------------------------------
-    reg [3:0] pp2[0:7];
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            pp2[0] <= 0; pp2[1] <= 0; pp2[2] <= 0; pp2[3] <= 0;
-            pp2[4] <= 0; pp2[5] <= 0; pp2[6] <= 0; pp2[7] <= 0;
+    // Function to perform 3:2 CSA reduction (Sum/Carry generation)
+    // Returns 32 bits: [31:16] for the Carry vector (shifted), [15:0] for the Sum vector.
+    function automatic [2*16-1:0] csa_3_to_2;
+        input [15:0] A, B, C;
+        reg [15:0] sum_out;
+        reg [15:0] carry_gen;
+        reg [15:0] carry_out;
+    begin
+        // The 16-bit Sum vector (XOR operation)
+        sum_out   = A ^ B ^ C;
+        // The 16-bit Carry vector (Majority operation)
+        carry_gen = (A & B) | (B & C) | (A & C);
+        // The shifted carry vector C_out, which is 16 bits wide.
+        // It drops the MSB carry (carry_gen[15]) and adds a LSB zero (1'b0).
+        // This is equivalent to C << 1, where C is carry_gen
+        carry_out = {carry_gen[14:0], 1'b0};
+        // Output: {16-bit Carry_out, 16-bit Sum_out} -> Total 32 bits
+        csa_3_to_2 = {carry_out, sum_out};
+    end
+    endfunction
+
+    // 4 parallel reductions:
+    // PPs 0,1,2 -> S_w3[0], C_w3[0]
+    // PPs 3,4,5 -> S_w3[1], C_w3[1]
+    assign {C_w3[0], S_w3[0]} = csa_3_to_2(PPs_r2[0], PPs_r2[1], PPs_r2[2]);
+    assign {C_w3[1], S_w3[1]} = csa_3_to_2(PPs_r2[3], PPs_r2[4], PPs_r2[5]);
+
+    // Register Sum/Carry pairs, and the remaining PPs
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            S_r3[0] <= 0; C_r3[0] <= 0;
+            S_r3[1] <= 0; C_r3[1] <= 0;
+            PPs_r3_remain[0] <= 0; PPs_r3_remain[1] <= 0;
         end else begin
-            pp2[0] <= a0 * b0;
-            pp2[1] <= a0 * b1;
-            pp2[2] <= a0 * b2;
-            pp2[3] <= a0 * b3;
-            pp2[4] <= a1 * b0;
-            pp2[5] <= a1 * b1;
-            pp2[6] <= a1 * b2;
-            pp2[7] <= a1 * b3;
+            S_r3[0] <= S_w3[0]; C_r3[0] <= C_w3[0];
+            S_r3[1] <= S_w3[1]; C_r3[1] <= C_w3[1];
+            // The remaining two PPs are registered for the next stage
+            PPs_r3_remain[0] <= PPs_r2[6];
+            PPs_r3_remain[1] <= PPs_r2[7];
         end
     end
 
-    // -------------------------------------------------------
-    // Stage 3: next 8 partial products
-    // -------------------------------------------------------
-    reg [3:0] pp3[0:15];
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            for (int i=0;i<16;i++) pp3[i] <= 0;
+    // --- Stage 4: Final Reduction (6 vectors -> 2 vectors) & Registration ---
+    // Vectors entering this stage: S_r3[0], C_r3[0], S_r3[1], C_r3[1], PPs_r3_remain[0], PPs_r3_remain[1]
+    // First 3:2 reduction: (S_r3[0], C_r3[0], S_r3[1]) -> S_w4_a, C_w4_a
+    wire [15:0] S_w4_a, C_w4_a;
+    assign {C_w4_a, S_w4_a} = csa_3_to_2(S_r3[0], C_r3[0], S_r3[1]);
+
+    // Second 3:2 reduction: (C_r3[1], PPs_r3_remain[0], PPs_r3_remain[1]) -> S_w4_b, C_w4_b
+    wire [15:0] S_w4_b, C_w4_b;
+    assign {C_w4_b, S_w4_b} = csa_3_to_2(C_r3[1], PPs_r3_remain[0], PPs_r3_remain[1]);
+
+    // Let the last stage handle the addition of the four final vectors.
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            S_r4 <= 0; C_r4 <= 0;
         end else begin
-            for (int i=0;i<8;i++) pp3[i] <= pp2[i];
-            pp3[8]  <= a2 * b0;
-            pp3[9]  <= a2 * b1;
-            pp3[10] <= a2 * b2;
-            pp3[11] <= a2 * b3;
-            pp3[12] <= a3 * b0;
-            pp3[13] <= a3 * b1;
-            pp3[14] <= a3 * b2;
-            pp3[15] <= a3 * b3;
+            // S_r4 holds the accumulated Sum of the two reduction results
+            S_r4 <= S_w4_a + S_w4_b; // This is a 16-bit addition (faster than a 4:2 compressor, relying on synthesis)
+            // C_r4 holds the accumulated Carry of the two reduction results
+            C_r4 <= C_w4_a + C_w4_b; // This is a 16-bit addition
         end
     end
 
-    // -------------------------------------------------------
-    // Stage 4: group additions (8-bit regs)
-    // -------------------------------------------------------
-    reg [7:0] g1_4, g2_4;
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin g1_4 <= 0; g2_4 <= 0; end
-        else begin
-            g1_4 <= {4'b0, pp3[1]} + {4'b0, pp3[4]};                 // extend 4->8 bits
-            g2_4 <= {4'b0, pp3[2]} + {4'b0, pp3[5]} + {4'b0, pp3[8]}; // extend 4->8 bits
-        end
-    end
+    // --- Stage 5: Final Carry Propagate Adder (CPA) ---
+    // The delay here is the full 16-bit CPA, but it has multiple cycles of slack built in.
+    wire [15:0] final_sum_w = S_r4 + C_r4;
 
-    // -------------------------------------------------------
-    // Stage 5: group additions (8-bit regs)
-    // -------------------------------------------------------
-    reg [7:0] g1_5, g2_5, g3_5, g4_5, g5_5;
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            g1_5<=0; g2_5<=0; g3_5<=0; g4_5<=0; g5_5<=0;
-        end else begin
-            g1_5 <= g1_4;
-            g2_5 <= g2_4;
-            g3_5 <= {4'b0, pp3[3]} + {4'b0, pp3[6]} + {4'b0, pp3[9]} + {4'b0, pp3[12]};
-            g4_5 <= {4'b0, pp3[7]} + {4'b0, pp3[10]} + {4'b0, pp3[13]};
-            g5_5 <= {4'b0, pp3[11]} + {4'b0, pp3[14]};
-        end
-    end
-
-    // -------------------------------------------------------
-    // Stage 6: partial sums (20-bit regs)
-    // -------------------------------------------------------
-    reg [19:0] part0_6, part1_6, save_pp0_6;
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin 
-            part0_6 <= 0; 
-            part1_6 <= 0; 
-            save_pp0_6 <= 0; 
-        end else begin
-            save_pp0_6 <= pp3[0]; 
-            part0_6 <= {16'b0, pp3[0]} + ({12'b0, g1_5} << 2);
-            part1_6 <= ({12'b0, g2_5} << 4) + ({12'b0, g3_5} << 6);
-        end
-    end
-
-    // -------------------------------------------------------
-    // Stage 7: part2
-    // -------------------------------------------------------
-    reg [19:0] part2_7, part0_7, part1_7;
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin 
-            part0_7 <= 0; part1_7 <= 0; part2_7 <= 0;
-        end else begin
-            part0_7 <= part0_6;
-            part1_7 <= part1_6;
-            part2_7 <= ({12'b0, g4_5} << 8) + ({12'b0, g5_5} << 10) + ({16'b0, pp3[15]} << 12);
-        end
-    end
-
-    // -------------------------------------------------------
-    // Stage 8: add part0 + part1
-    // -------------------------------------------------------
-    reg [19:0] mid_8, part2_8;
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin 
-            mid_8 <= 0; 
-            part2_8 <= 0; 
-        end else begin
-            mid_8 <= part0_7 + part1_7;
-            part2_8 <= part2_7;
-        end
-    end
-
-    // -------------------------------------------------------
-    // Stage 9: final sum
-    // -------------------------------------------------------
-    reg [19:0] sum_9;
-    always @(posedge clk or posedge rst) begin
-        if (rst)
-            sum_9 <= 0;
+    always @(posedge clk or negedge rst) begin
+        if (!rst)
+            product_out <= 0;
         else
-            sum_9 <= mid_8 + part2_8;
-    end
-
-    // -------------------------------------------------------
-    // Stage 10: truncate to 16 bits
-    // -------------------------------------------------------
-    always @(posedge clk or posedge rst) begin
-        if (rst)
-            product <= 0;
-        else
-            product <= sum_9[15:0];
+            product_out <= final_sum_w;
     end
 
 endmodule

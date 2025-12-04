@@ -1,0 +1,10 @@
+%Warning-WIDTHEXPAND: mult.v:40:51: Operator AND expects 8 bits on the LHS, but LHS's SEL generates 1 bits.
+                                  : ... note: In instance 'mult'
+   40 |             assign PPs_w[i] = {{8{1'b0}}, a_r1[i] & b_r1} << i;
+      |                                                   ^
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.018
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.
+%Warning-UNUSEDSIGNAL: mult.v:61:20: Bits of signal are not used: 'carry_gen'[15]
+                                   : ... note: In instance 'mult'
+   61 |         reg [15:0] carry_gen;
+      |                    ^~~~~~~~~
